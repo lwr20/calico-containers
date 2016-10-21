@@ -48,7 +48,8 @@ class MultiHostMainline(TestBase):
         "rules.ip.addr",
         "rules.ip.net",
         "rules.selector",
-        # "rules.tcp.port",
+        "rules.tcp.port",
+        "rules.udp.port",
     ])
     def test_multi_host(self, test_type):
         """
@@ -116,7 +117,7 @@ class MultiHostMainline(TestBase):
                 # The copy.deepcopy(rule) is needed to ensure that we don't
                 # end up with a yaml document with a reference to the same
                 # rule.  While this is probably legal, it isn't main line.
-                new_profiles[0]['spec']['ingress'].append(copy.deepcopy(rule))
+                new_profiles[0]['spec']['ingress'].append(rule)
                 new_profiles[1]['spec']['ingress'].append(copy.deepcopy(rule))
                 self._apply_new_profile(new_profiles, host1)
                 # Check everything can contact everything else now
@@ -173,7 +174,42 @@ class MultiHostMainline(TestBase):
                                          pass_list=n1_workloads + n2_workloads)
 
             elif test_type == "rules.tcp.port":
-                pass
+                rule = {'action': 'allow',
+                        'protocol': 'tcp',
+                        'destination':
+                            {'ports': [80]}}
+                # The copy.deepcopy(rule) is needed to ensure that we don't
+                # end up with a yaml document with a reference to the same
+                # rule.  While this is probably legal, it isn't main line.
+                new_profiles[0]['spec']['ingress'].append(rule)
+                new_profiles[1]['spec']['ingress'].append(copy.deepcopy(rule))
+                self._apply_new_profile(new_profiles, host1)
+                self.assert_connectivity(retries=2,
+                                         pass_list=n1_workloads + n2_workloads,
+                                         type_list=['tcp'])
+                self.assert_connectivity(retries=2,
+                                         pass_list=n1_workloads,
+                                         fail_list=n2_workloads,
+                                         type_list=['icmp', 'udp'])
+
+            elif test_type == "rules.udp.port":
+                rule = {'action': 'allow',
+                        'protocol': 'udp',
+                        'destination':
+                            {'ports': [69]}}
+                # The copy.deepcopy(rule) is needed to ensure that we don't
+                # end up with a yaml document with a reference to the same
+                # rule.  While this is probably legal, it isn't main line.
+                new_profiles[0]['spec']['ingress'].append(rule)
+                new_profiles[1]['spec']['ingress'].append(copy.deepcopy(rule))
+                self._apply_new_profile(new_profiles, host1)
+                self.assert_connectivity(retries=2,
+                                         pass_list=n1_workloads + n2_workloads,
+                                         type_list=['udp'])
+                self.assert_connectivity(retries=2,
+                                         pass_list=n1_workloads,
+                                         fail_list=n2_workloads,
+                                         type_list=['icmp', 'tcp'])
 
             else:
                 print "******************* " \
@@ -245,6 +281,14 @@ class MultiHostMainline(TestBase):
         n2_workloads.append(host2.create_workload("workload_h2n2_1",
                                                   image="workload",
                                                   network=network2))
+        print "*******************"
+        print "Network1 is:\n%s\n%s" % (
+            [x.ip for x in n1_workloads],
+            [x.name for x in n1_workloads])
+        print "Network2 is:\n%s\n%s" % (
+            [x.ip for x in n2_workloads],
+            [x.name for x in n2_workloads])
+        print "*******************"
 
         # Assert that endpoints are in Calico
         assert_number_endpoints(host1, 4, go=True)
@@ -259,18 +303,23 @@ class MultiHostMainline(TestBase):
 
         return n1_workloads, n2_workloads, networks
 
-    def _check_original_connectivity(self, n1_workloads, n2_workloads):
+    def _check_original_connectivity(self, n1_workloads, n2_workloads,
+                                     types=None):
         # Assert that workloads can communicate with each other on network
         # 1, and not those on network 2.  Ping using IP for all workloads,
         # and by hostname for workloads on the same network (note that
         # a workloads own hostname does not work).
+        if types is None:
+            types = ['icmp', 'tcp', 'udp']
         self.assert_connectivity(retries=2,
                                  pass_list=n1_workloads,
-                                 fail_list=n2_workloads)
+                                 fail_list=n2_workloads,
+                                 type_list=types)
 
         # Repeat with network 2.
         self.assert_connectivity(pass_list=n2_workloads,
-                                 fail_list=n1_workloads)
+                                 fail_list=n1_workloads,
+                                 type_list=types)
 
 
 class InvalidData(TestBase):
