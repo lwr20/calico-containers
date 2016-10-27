@@ -16,6 +16,7 @@ import logging
 import yaml
 from unittest import skip
 
+from functools import partial
 from netaddr import IPNetwork
 from nose_parameterized import parameterized
 
@@ -737,3 +738,319 @@ class TestCreateFromFile(TestBase):
         with open('test', 'r') as f:
             output = json.loads(f.read())
         self.assert_same(data, output)
+
+
+class InvalidData(TestBase):
+    testdata = [
+                   ("bgpPeer-invalidkind", {
+                       'apiVersion': 'v1',
+                       'kind': 'bgppeer',
+                       'metadata': {'hostname': 'Node1',
+                                    'peerIP': '192.168.0.250',
+                                    'scope': 'node'},
+                       'spec': {'asNumber': 64511}
+                   }),
+                   ("bgpPeer-invalidASnum", {
+                       'apiVersion': 'v1',
+                       'kind': 'bgpPeer',
+                       'metadata': {'hostname': 'Node1',
+                                    'peerIP': '192.168.0.250',
+                                    'scope': 'node'},
+                       'spec': {'asNumber': 4294967296}
+                       # Valid numbers are <=4294967295
+                   }),
+                   ("bgpPeer-invalidIP", {
+                       'apiVersion': 'v1',
+                       'kind': 'bgpPeer',
+                       'metadata': {'hostname': 'Node1',
+                                    'peerIP': '192.168.0.256',
+                                    'scope': 'node'},
+                       'spec': {'asNumber': 64511}
+                   }),
+                   ("bgpPeer-apiversion", {
+                       'apiVersion': 'v7',
+                       'kind': 'bgpPeer',
+                       'metadata': {'hostname': 'Node1',
+                                    'peerIP': '192.168.0.250',
+                                    'scope': 'node'},
+                       'spec': {'asNumber': 64511}
+                   }),
+                   ("bgpPeer-invalidIpv6", {
+                       'apiVersion': 'v1',
+                       'kind': 'bgpPeer',
+                       'metadata': {'hostname': 'Node2',
+                                    'peerIP': 'fd5f::6::ee',
+                                    'scope': 'node'},
+                       'spec': {'asNumber': 64590}
+                   }),
+                   ("bgpPeer-invalidname", {
+                       'apiVersion': 'v1',
+                       'kind': 'bgpPeer',
+                       'metadata': {'hostname': 'Node 2',
+                                    'peerIP': 'fd5f::6:ee',
+                                    'scope': 'node'},
+                       'spec': {'asNumber': 64590}
+                   }),
+                   # See issue https://github.com/projectcalico/libcalico-go/issues/222
+                   # ("bgpPeer-longname", {
+                   #     'apiVersion': 'v1',
+                   #     'kind': 'bgpPeer',
+                   #     'metadata': {'hostname':
+                   #                      'TestTestTestTestTestTestTestTestTestTestTest'
+                   #                      'TestTestTestTestTestTestTestTestTestTestTest'
+                   #                      'TestTestTestTestTestTestTestTestTestTestTest'
+                   #                      'TestTestTestTestTestTestTestTestTestTestTest'
+                   #                      'TestTestTestTestTestTestTestTestTestTestTest'
+                   #                      'TestTestTestTestTestTestTestTestTestTestTest'
+                   #                      'TestTestTestTestTestTestTestTestTestTestTest'
+                   #                      'TestTestTestTestTestTestTestTestTestTestTest'
+                   #                      'TestTestTestTestTestTestTestTestTestTestTest'
+                   #                      'TestTestTestTestTestTestTestTestTestTestTest'
+                   #                      'TestTestTestTestTestTestTestTestTestTestTest',
+                   #                  'peerIP': 'fd5f::6:ee',
+                   #                  'scope': 'node'},
+                   #     'spec': {'asNumber': 64590}
+                   # }),
+                   ("hostEndpoint-invalidInterface", {
+                       'apiVersion': 'v1',
+                       'kind': 'hostEndpoint',
+                       'metadata': {'hostname': 'host1',
+                                    'labels': {'type': 'database'},
+                                    'name': 'endpoint1'},
+                       'spec': {'interfaceName': 'wibblywobblyeth0',
+                                'profiles': ['prof1',
+                                             'prof2']}
+                   }),
+                   # See issue https://github.com/projectcalico/libcalico-go/issues/222
+                   # ("policy-invalidHighPortinList", {
+                   #     'apiVersion': 'v1',
+                   #     'kind': 'policy',
+                   #     'metadata': {'name': 'policy2'},
+                   #     'spec': {'egress': [{'action': 'deny',
+                   #                          'destination': {},
+                   #                          'protocol': 'tcp',
+                   #                          'source': {},
+                   #                          'ports': [10, 90, 65536]  # Max port is 65535
+                   #                          }],
+                   #              'ingress': [{'action': 'allow',
+                   #                           'destination': {},
+                   #                           'protocol': 'udp',
+                   #                           'source': {}}],
+                   #              'order': 100000,
+                   #              'selector': ""}}),
+                   # ("policy-invalidHighPortinRange", {
+                   #     'apiVersion': 'v1',
+                   #     'kind': 'policy',
+                   #     'metadata': {'name': 'policy2'},
+                   #     'spec': {'egress': [{'action': 'deny',
+                   #                          'destination': {},
+                   #                          'protocol': 'tcp',
+                   #                          'source': {},
+                   #                          'ports': [1-65536]  # Max port is 65535
+                   #                          }],
+                   #              'ingress': [{'action': 'allow',
+                   #                           'destination': {},
+                   #                           'protocol': 'udp',
+                   #                           'source': {}}],
+                   #              'order': 100000,
+                   #              'selector': ""}}),
+                   # ("policy-invalidLowPortinRange", {
+                   #     'apiVersion': 'v1',
+                   #     'kind': 'policy',
+                   #     'metadata': {'name': 'policy2'},
+                   #     'spec': {'egress': [{'action': 'deny',
+                   #                          'destination': {},
+                   #                          'protocol': 'tcp',
+                   #                          'source': {},
+                   #                          'ports': [0-65535]  # Min port is 1
+                   #                          }],
+                   #              'ingress': [{'action': 'allow',
+                   #                           'destination': {},
+                   #                           'protocol': 'udp',
+                   #                           'source': {}}],
+                   #              'order': 100000,
+                   #              'selector': ""}}),
+                   # ("policy-invalidLowPortinList", {
+                   #     'apiVersion': 'v1',
+                   #     'kind': 'policy',
+                   #     'metadata': {'name': 'policy2'},
+                   #     'spec': {'egress': [{'action': 'deny',
+                   #                          'destination': {},
+                   #                          'protocol': 'tcp',
+                   #                          'source': {},
+                   #                          'ports': [0, 10, 80]  # Min port is 1
+                   #                          }],
+                   #              'ingress': [{'action': 'allow',
+                   #                           'destination': {},
+                   #                           'protocol': 'udp',
+                   #                           'source': {}}],
+                   #              'order': 100000,
+                   #              'selector': ""}}),
+                   # ("policy-invalidReversedRange", {
+                   #     'apiVersion': 'v1',
+                   #     'kind': 'policy',
+                   #     'metadata': {'name': 'policy2'},
+                   #     'spec': {'egress': [{'action': 'deny',
+                   #                          'destination': {},
+                   #                          'protocol': 'tcp',
+                   #                          'source': {},
+                   #                          'ports': [65535-1]  # range should be low-high
+                   #                          }],
+                   #              'ingress': [{'action': 'allow',
+                   #                           'destination': {},
+                   #                           'protocol': 'udp',
+                   #                           'source': {}}],
+                   #              'order': 100000,
+                   #              'selector': ""}}),
+                   ("policy-invalidAction", {
+                       'apiVersion': 'v1',
+                       'kind': 'policy',
+                       'metadata': {'name': 'policy2'},
+                       'spec': {'egress': [{'action': 'jumpupanddown',
+                                            'destination': {},
+                                            'protocol': 'tcp',
+                                            'source': {},
+                                            }],
+                                'ingress': [{'action': 'allow',
+                                             'destination': {},
+                                             'protocol': 'udp',
+                                             'source': {}}],
+                                'order': 100000,
+                                'selector': ""}}),
+                   ("pool-invalidNet1", {'apiVersion': 'v1',
+                                         'kind': 'pool',
+                                         'metadata': {'cidr': "10.0.1.0/33"},
+                                         # impossible mask
+                                         'spec': {'ipip': {'enabled': True}}
+                                         }),
+                   ("pool-invalidNet2", {'apiVersion': 'v1',
+                                         'kind': 'pool',
+                                         'metadata': {'cidr': "10.0.256.0/24"},
+                                         # invalid octet
+                                         'spec': {'ipip': {'enabled': True}}
+                                         }),
+                   ("pool-invalidNet3", {'apiVersion': 'v1',
+                                         'kind': 'pool',
+                                         'metadata': {'cidr': "10.0.250.0"},
+                                         # no mask
+                                         'spec': {'ipip': {'enabled': True}}
+                                         }),
+                   ("pool-invalidNet4", {'apiVersion': 'v1',
+                                         'kind': 'pool',
+                                         'metadata': {'cidr': "fd5f::2::1/32"},
+                                         # too many ::
+                                         'spec': {'ipip': {'enabled': True}}
+                                         }),
+                   #  https://github.com/projectcalico/libcalico-go/issues/224
+                   # ("pool-invalidNet5a", {'apiVersion': 'v1',
+                   #                       'kind': 'pool',
+                   #                       'metadata': {'cidr': "::/0"},  # HUGE pool
+                   #                       }),
+                   # ("pool-invalidNet5b", {'apiVersion': 'v1',
+                   #                       'kind': 'pool',
+                   #                       'metadata': {'cidr': "1.1.1.1/0"},  # BIG pool
+                   #                       }),
+                   ("pool-invalidNet6", {'apiVersion': 'v1',
+                                         'kind': 'pool',
+                                         'metadata': {'cidr': "::/128"},
+                                         # nothing
+                                         }),
+                   ("pool-invalidNet7", {'apiVersion': 'v1',
+                                         'kind': 'pool',
+                                         'metadata': {'cidr': "192.168.0.0/27"},
+                                         # invalid mask
+                                         }),
+                   ("pool-invalidNet8", {'apiVersion': 'v1',
+                                         'kind': 'pool',
+                                         'metadata': {'cidr': "fd5f::1/123"},
+                                         # invalid mask
+                                         }),
+
+                   ("pool-invalidIpIp1", {'apiVersion': 'v1',
+                                          'kind': 'pool',
+                                          'metadata': {'cidr': "10.0.1.0/24"},
+                                          'spec': {'ipip': {'enabled': 'True'}}
+                                          # enabled value is bool
+                                          }),
+                   ("pool-invalidIpIp2", {'apiVersion': 'v1',
+                                          'kind': 'pool',
+                                          'metadata': {'cidr': "10.0.1.0/24"},
+                                          'spec': {'ipip': {'enabled': 'Maybe'}}
+                                          }),
+                   ("profile-icmptype", {'apiVersion': 'v1',
+                                         'kind': 'profile',
+                                         'metadata': {'name': 'profile2'},
+                                         'spec': {
+                                             'egress': [{'action': 'allow',
+                                                         'destination': {},
+                                                         'source': {}}],
+                                             'ingress': [{'ipVersion': 6,
+                                                          'icmp': {'type': 256,
+                                                                   # 1-byte field
+                                                                   'code': 255},
+                                                          'action': 'deny',
+                                                          'destination': {},
+                                                          'source': {}}],
+                                             'tags': ['tag1', 'tag2s']}}),
+                   ("profile-icmpcode", {'apiVersion': 'v1',
+                                         'kind': 'profile',
+                                         'metadata': {'name': 'profile2'},
+                                         'spec': {
+                                             'egress': [{'action': 'allow',
+                                                         'destination': {},
+                                                         'source': {}}],
+                                             'ingress': [{'ipVersion': 6,
+                                                          'icmp': {'type': 19,
+                                                                   'code': 256},
+                                                          # 1-byte field
+                                                          'action': 'deny',
+                                                          'destination': {},
+                                                          'source': {}}],
+                                             'tags': ['tag1', 'tag2s']}}),
+                   ("compound-config", [{
+                       'apiVersion': 'v1',
+                       'kind': 'bgpPeer',
+                       'metadata': {'hostname': 'Node1',
+                                    'peerIP': '192.168.0.250',
+                                    'scope': 'node'},
+                       'spec': {'asNumber': 64511}},
+                       {'apiVersion': 'v1',
+                        'kind': 'profile',
+                        'metadata': {'name': 'profile2'},
+                        'spec': {
+                            'egress': [{'action': 'allow',
+                                        'destination': {},
+                                        'source': {}}],
+                            'ingress': [{'ipVersion': 6,
+                                         'icmp': {'type': 256,  # 1-byte field
+                                                  'code': 255},
+                                         'action': 'deny',
+                                         'destination': {},
+                                         'source': {}}],
+                            'tags': ['tag1', 'tag2s']},
+                        }],
+                    ),
+               ]
+
+    @parameterized.expand(testdata)
+    def test_invalid_profiles_rejected(self, name, testdata):
+
+        with DockerHost('host', dind=False, start_calico=False) as host:
+            def check_no_data_in_store(testdata):
+                out = host.calicoctl(
+                    "get %s --output=yaml" % testdata['kind'], new=True)
+                output = yaml.safe_load(out)
+                assert output == [], "Testdata has left data in datastore " \
+                                     "instead of being completely rejected"
+
+            host.writefile("testfile.yaml", testdata)
+            self.assertRaises(CommandExecError,
+                              host.calicoctl,
+                              "create -f testfile.yaml",
+                              new=True)
+            if name.startswith('compound'):
+                for data in testdata:
+                    check_no_data_in_store(data)
+            else:
+                check_no_data_in_store(testdata)
+

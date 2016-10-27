@@ -320,12 +320,3 @@ class MultiHostMainline(TestBase):
         self.assert_connectivity(pass_list=n2_workloads,
                                  fail_list=n1_workloads,
                                  type_list=types)
-
-
-class InvalidData(TestBase):
-    @parameterized.expand([
-    ])
-    def test_invalid_profiles_rejected(self, testdata):
-        with DockerHost('host', dind=False, start_calico=False) as host:
-            host.writefile("testfile.yaml", testdata)
-            host.calicoctl("create -f testfile.yaml", new=True)
