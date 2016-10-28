@@ -8,16 +8,9 @@
     labels:
       type: production
 - apiVersion: v1
-  kind: tier
-  metadata:
-    name: tier1
-  spec:
-    order: 100
-- apiVersion: v1
   kind: policy
   metadata:
     name: policy1
-    tier: tier1
   spec:
     order: 100
     ingress:
@@ -33,10 +26,10 @@
   kind: hostEndpoint
   metadata:
     name: eth0
-    hostname: myhost
+    node: myhost
   labels:
     type: production
   spec:
-    interface: eth0
+    interfaceName: eth0
     profiles:
     - profile1

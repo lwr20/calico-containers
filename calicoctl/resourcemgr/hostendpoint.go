@@ -15,19 +15,19 @@
 package resourcemgr
 
 import (
-	"github.com/tigera/libcalico-go/lib/api"
-	"github.com/tigera/libcalico-go/lib/api/unversioned"
-	"github.com/tigera/libcalico-go/lib/client"
+	"github.com/projectcalico/libcalico-go/lib/api"
+	"github.com/projectcalico/libcalico-go/lib/api/unversioned"
+	"github.com/projectcalico/libcalico-go/lib/client"
 )
 
 func init() {
 	registerResource(
 		api.NewHostEndpoint(),
 		api.NewHostEndpointList(),
-		[]string{"HOSTNAME", "NAME"},
-		[]string{"HOSTNAME", "NAME", "INTERFACE", "IPS", "PROFILES"},
+		[]string{"NODE", "NAME"},
+		[]string{"NODE", "NAME", "INTERFACE", "IPS", "PROFILES"},
 		map[string]string{
-			"HOSTNAME":  "{{.Metadata.Hostname}}",
+			"NODE":      "{{.Metadata.Node}}",
 			"NAME":      "{{.Metadata.Name}}",
 			"INTERFACE": "{{.Spec.InterfaceName}}",
 			"IPS":       "{{join .Spec.ExpectedIPs \",\"}}",

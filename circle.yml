@@ -1,30 +1,14 @@
-dependencies:
+general:
+  artifacts:
+    - "release"
+machine:
+  services:
+    - docker
+test:
   override:
-    - mkdir -p $HOME/.go_project/src/github.com/$CIRCLE_PROJECT_USERNAME
-    - ln -fs $HOME/$CIRCLE_PROJECT_REPONAME $HOME/.go_project/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-    - |
-      echo 'export GOPATH=$GOPATH:$HOME/.go_project' >> ~/.circlerc:
-    - go get -t -v -d ./calicoctl
-    - go build -v -o ./dist/calicoctl ./calicoctl 
-
+    - make release/calicoctl test-containerized
 experimental:
   notify:
     branches:
       only:
         - master
-
-test:
-  override:
-    - echo tested, i swear.
-
-machine:
-  environment:
-    # GOROOT is not set by default
-    GOROOT: ""
-    PATH: "/usr/local/go/bin:/usr/local/go_workspace/bin:~/.go_workspace/bin:${PATH}"
-    GOPATH: "${HOME}/.go_workspace:/usr/local/go_workspace:${HOME}/.go_project"
-
-general:
-  artifacts:
-    # Can't use environment variables here, unfortunately...
-    - "dist"

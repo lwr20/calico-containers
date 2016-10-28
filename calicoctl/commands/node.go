@@ -17,44 +17,55 @@ package commands
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/docopt/docopt-go"
+	"github.com/projectcalico/calico-containers/calicoctl/commands/constants"
 	"github.com/projectcalico/calico-containers/calicoctl/commands/node"
 )
 
 // Node function is a switch to node related sub-commands
 func Node(args []string) error {
 	var err error
-	doc := `Usage: calicoctl node <command> [<args>...]
+	doc := constants.DatastoreIntro + `Usage:
+  calicoctl node <command> [<args>...]
 
-    status          Shows the status of the node. 
+    status         View the current status of a Calico node.
+    diags          Gather a diagnostics bundle for a Calico node.
+    checksystem    Verify the compute host is able to run a Calico node instance.
+
+Options:
+  -h --help               Show this screen.
 
 Description:
-  Node specific commands for calicoctl
+  Node specific commands for calicoctl.  These commands must be run directly on
+  the compute host running the Calico node instance.
   
-  See 'calicoctl node --help' to read about a specific subcommand.`
-
-	arguments, err := docopt.Parse(doc, args, true, "calicoctl", false, false)
+  See 'calicoctl node <command> --help' to read about a specific subcommand.`
+	arguments, err := docopt.Parse(doc, args, true, "", true, false)
 	if err != nil {
 		return err
 	}
+	if arguments["<command>"] == nil {
+		return nil
+	}
 
-	// If `--help` or `-h` is passed, then arguments[] will be nil
-	if arguments["<command>"] != nil {
-		command := arguments["<command>"].(string)
-		nodeArgs := append([]string{command}, arguments["<args>"].([]string)...)
+	command := arguments["<command>"].(string)
+	args = append([]string{"node", command}, arguments["<args>"].([]string)...)
 
-		switch command {
-		case "status":
-			err = node.Status(nodeArgs)
-		default:
-			fmt.Printf("Invalid option: %s\n", command)
-			fmt.Println(doc)
-		}
+	switch command {
+	case "status":
+		err = node.Status(args)
+	case "diags":
+		err = node.Diags(args)
+	case "checksystem":
+		err = node.Checksystem(args)
+	default:
+		fmt.Println(doc)
 	}
 
 	if err != nil {
-		fmt.Printf("Error executing command: %s\n", err)
+		fmt.Printf("Error executing command. Invalid option: 'calicoctl %s'. Use flag '--help' to read about a specific subcommand.\n", strings.Join(args, " "))
 		os.Exit(1)
 	}
 

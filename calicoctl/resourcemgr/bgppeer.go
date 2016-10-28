@@ -15,9 +15,9 @@
 package resourcemgr
 
 import (
-	"github.com/tigera/libcalico-go/lib/api"
-	"github.com/tigera/libcalico-go/lib/api/unversioned"
-	"github.com/tigera/libcalico-go/lib/client"
+	"github.com/projectcalico/libcalico-go/lib/api"
+	"github.com/projectcalico/libcalico-go/lib/api/unversioned"
+	"github.com/projectcalico/libcalico-go/lib/client"
 )
 
 func init() {
@@ -27,10 +27,10 @@ func init() {
 		[]string{"SCOPE", "PEERIP", "HOSTNAME", "ASN"},
 		[]string{"SCOPE", "PEERIP", "HOSTNAME", "ASN"},
 		map[string]string{
-			"SCOPE":    "{{.Metadata.Scope}}",
-			"PEERIP":   "{{.Metadata.PeerIP}}",
-			"HOSTNAME": "{{.Metadata.Hostname}}",
-			"ASN":      "{{.Spec.ASNumber}}",
+			"SCOPE":  "{{.Metadata.Scope}}",
+			"PEERIP": "{{.Metadata.PeerIP}}",
+			"NODE":   "{{.Metadata.Node}}",
+			"ASN":    "{{.Spec.ASNumber}}",
 		},
 		func(client *client.Client, resource unversioned.Resource) (unversioned.Resource, error) {
 			r := resource.(api.BGPPeer)

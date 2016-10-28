@@ -20,15 +20,16 @@ import (
 	"reflect"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/ghodss/yaml"
-	"github.com/golang/glog"
+	"github.com/projectcalico/calico-containers/calicoctl/commands/clientmgr"
 	"github.com/projectcalico/calico-containers/calicoctl/resourcemgr"
-	"github.com/tigera/libcalico-go/lib/api"
-	"github.com/tigera/libcalico-go/lib/api/unversioned"
-	"github.com/tigera/libcalico-go/lib/client"
-	calicoErrors "github.com/tigera/libcalico-go/lib/errors"
-	"github.com/tigera/libcalico-go/lib/net"
-	"github.com/tigera/libcalico-go/lib/scope"
+	"github.com/projectcalico/libcalico-go/lib/api"
+	"github.com/projectcalico/libcalico-go/lib/api/unversioned"
+	"github.com/projectcalico/libcalico-go/lib/client"
+	calicoErrors "github.com/projectcalico/libcalico-go/lib/errors"
+	"github.com/projectcalico/libcalico-go/lib/net"
+	"github.com/projectcalico/libcalico-go/lib/scope"
 )
 
 type action int
@@ -47,7 +48,7 @@ const (
 // different possible options to convert to a single slice of resources.
 func convertToSliceOfResources(loaded interface{}) []unversioned.Resource {
 	r := []unversioned.Resource{}
-	glog.V(2).Infof("Converting resource to slice: %v\n", loaded)
+	log.Infof("Converting resource to slice: %v", loaded)
 
 	switch reflect.TypeOf(loaded).Kind() {
 	case reflect.Slice:
@@ -86,7 +87,7 @@ func convertToSliceOfResources(loaded interface{}) []unversioned.Resource {
 			reflect.TypeOf(loaded).Kind())))
 	}
 
-	glog.V(2).Infof("Returning slice: %v\n", r)
+	log.Infof("Returning slice: %v", r)
 	return r
 }
 
@@ -94,8 +95,9 @@ func convertToSliceOfResources(loaded interface{}) []unversioned.Resource {
 func getResourceFromArguments(args map[string]interface{}) (unversioned.Resource, error) {
 	kind := args["<KIND>"].(string)
 	name := argStringOrBlank(args, "<NAME>")
-	tier := argStringOrBlank(args, "--tier")
-	hostname := argStringOrBlank(args, "--hostname")
+	node := argStringOrBlank(args, "--node")
+	workload := argStringOrBlank(args, "--workload")
+	orchestrator := argStringOrBlank(args, "--orchestrator")
 	resScope := argStringOrBlank(args, "--scope")
 	switch strings.ToLower(kind) {
 	case "hostendpoints":
@@ -103,14 +105,17 @@ func getResourceFromArguments(args map[string]interface{}) (unversioned.Resource
 	case "hostendpoint":
 		h := api.NewHostEndpoint()
 		h.Metadata.Name = name
-		h.Metadata.Hostname = hostname
+		h.Metadata.Node = node
 		return *h, nil
-	case "tiers":
+	case "workloadendpoints":
 		fallthrough
-	case "tier":
-		t := api.NewTier()
-		t.Metadata.Name = name
-		return *t, nil
+	case "workloadendpoint":
+		h := api.NewWorkloadEndpoint()
+		h.Metadata.Name = name
+		h.Metadata.Orchestrator = orchestrator
+		h.Metadata.Workload = workload
+		h.Metadata.Node = node
+		return *h, nil
 	case "profiles":
 		fallthrough
 	case "profile":
@@ -122,7 +127,6 @@ func getResourceFromArguments(args map[string]interface{}) (unversioned.Resource
 	case "policy":
 		p := api.NewPolicy()
 		p.Metadata.Name = name
-		p.Metadata.Tier = tier
 		return *p, nil
 	case "pools":
 		fallthrough
@@ -146,7 +150,7 @@ func getResourceFromArguments(args map[string]interface{}) (unversioned.Resource
 				return nil, err
 			}
 		}
-		p.Metadata.Hostname = hostname
+		p.Metadata.Node = node
 		switch resScope {
 		case "node":
 			p.Metadata.Scope = scope.Node
@@ -200,7 +204,7 @@ func executeConfigCommand(args map[string]interface{}, action action) commandRes
 	var err error
 	var resources []unversioned.Resource
 
-	glog.V(2).Info("Executing config command")
+	log.Info("Executing config command")
 
 	if filename := args["--filename"]; filename != nil {
 		// Filename is specified, load the resource from file and convert to a slice
@@ -226,22 +230,22 @@ func executeConfigCommand(args map[string]interface{}, action action) commandRes
 		return commandResults{err: errors.New("no resources specified")}
 	}
 
-	if glog.V(2) {
-		glog.Infof("Resources: %v\n", resources)
+	if log.GetLevel() >= log.DebugLevel {
+		log.Debugf("Resources: %v", resources)
 		d, err := yaml.Marshal(resources)
 		if err != nil {
 			return commandResults{err: err}
 		}
-		glog.Infof("Data: %s\n", string(d))
+		log.Debugf("Data: %s", string(d))
 	}
 
 	// Load the client config and connect.
 	cf := args["--config"].(string)
-	client, err := newClient(cf)
+	client, err := clientmgr.NewClient(cf)
 	if err != nil {
 		return commandResults{err: err}
 	}
-	glog.V(2).Infof("Client: %v\n", client)
+	log.Infof("Client: %v", client)
 
 	// Initialise the command results with the number of resources and the name of the
 	// kind of resource (if only dealing with a single resource).

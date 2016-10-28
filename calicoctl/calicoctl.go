@@ -15,17 +15,19 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"strings"
 
 	"os"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/docopt/docopt-go"
 	"github.com/projectcalico/calico-containers/calicoctl/commands"
 )
 
 func main() {
-	usage := `Usage: calicoctl <command> [<args>...]
+	doc := `Usage:
+  calicoctl [options] <command> [<args>...]
 
     create         Create a resource by filename or stdin.
     replace        Replace a resource by filename or stdin.
@@ -34,19 +36,33 @@ func main() {
     delete         Delete a resource identified by file, stdin or resource type and name.
     get            Get a resource identified by file, stdin or resource type and name.
     version        Display the version of calicoctl.
-    node           Node related commands.
+    node           Calico node management.
+    ipam           IP address management.
 
-See 'calicoctl <command> --help' to read about a specific subcommand.`
+Options:
+  -h --help               Show this screen.
+  -l --log-level=<level>  Set the log level (one of panic, fatal, error,
+                          warn, info, debug) [default: panic]
+
+Description:
+  The calicoctl command line tool is used to manage Calico network and security policy,
+  to view and manage endpoint configuration, and to manage a Calico node instance.
+
+  See 'calicoctl <command> --help' to read about a specific subcommand.`
 	var err error
-	doc := commands.EtcdIntro + usage
+	arguments, _ := docopt.Parse(doc, nil, true, commands.VERSION_SUMMARY, true, false)
 
-	if os.Getenv("GLOG") != "" {
-		flag.Parse()
-		flag.Lookup("logtostderr").Value.Set("true")
-		flag.Lookup("v").Value.Set("10")
+	if logLevel := arguments["--log-level"]; logLevel != nil {
+		parsedLogLevel, err := log.ParseLevel(logLevel.(string))
+		if err != nil {
+			fmt.Printf("Unknown log level: %s, expected one of: \n"+
+				"panic, fatal, error, warn, info, debug.\n", logLevel)
+			os.Exit(1)
+		} else {
+			log.SetLevel(parsedLogLevel)
+			log.Infof("Log level set to %v", parsedLogLevel)
+		}
 	}
-
-	arguments, _ := docopt.Parse(doc, nil, true, "calicoctl", true, false)
 
 	if arguments["<command>"] != nil {
 		command := arguments["<command>"].(string)
@@ -67,13 +83,15 @@ See 'calicoctl <command> --help' to read about a specific subcommand.`
 			err = commands.Version(args)
 		case "node":
 			err = commands.Node(args)
+		case "ipam":
+			err = commands.IPAM(args)
 		default:
-			fmt.Println(usage)
+			fmt.Println(doc)
 		}
-	}
 
-	if err != nil {
-		fmt.Printf("Error executing command: %s\n", err)
-		os.Exit(1)
+		if err != nil {
+			fmt.Printf("Error executing command. Invalid option: 'calicoctl %s'. Use flag '--help' to read about a specific subcommand.\n", strings.Join(args, " "))
+			os.Exit(1)
+		}
 	}
 }

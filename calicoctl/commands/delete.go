@@ -15,21 +15,18 @@
 package commands
 
 import (
-	"github.com/docopt/docopt-go"
-
 	"fmt"
 
-	"github.com/golang/glog"
+	log "github.com/Sirupsen/logrus"
+	"github.com/docopt/docopt-go"
+
+	"github.com/projectcalico/calico-containers/calicoctl/commands/constants"
 )
 
 func Delete(args []string) error {
-	doc := EtcdIntro + `Delete a resource identified by file, stdin or resource type and name.
-
-Valid resource kinds are bgpPeer, hostEndpoint, policy, pool, profile and tier.  The <KIND>
-parameter is case insensitive and may be pluralized.
-
-Usage:
-  calicoctl delete (([--tier=<TIER>] [--hostname=<HOSTNAME>] [--scope=<SCOPE>] <KIND> <NAME>) |
+	doc := constants.DatastoreIntro + `Usage:
+  calicoctl delete ([--node=<NODE>] [--orchestrator=<ORCH>] [--workload=<WORKLOAD>] [--scope=<SCOPE>]
+                    (<KIND> [<NAME>]) |
                     --filename=<FILE>)
                    [--skip-not-exists] [--config=<CONFIG>]
 
@@ -40,24 +37,45 @@ Examples:
   # Delete a policy based on the type and name in the YAML passed into stdin.
   cat policy.yaml | calicoctl delete -f -
 
-  # Delete policy in the default tier with name "foo"
+  # Delete policy with name "foo"
   calicoctl delete policy foo
 
-  # Delete policy in the tier "bar" with name "foo"
-  calicoctl delete policy --tier=bar foo
-
 Options:
-  -s --skip-not-exists         Skip over and treat as successful, resources that don't exist.
-  -f --filename=<FILENAME>     Filename to use to delete the resource.  If set to "-" loads from stdin.
-  -t --tier=<TIER>             The policy tier.
-  -n --hostname=<HOSTNAME>     The hostname.
-  --scope=<SCOPE>              The scope of the resource type.  One of global, node.  This is only valid
-                               for BGP peers and is used to indicate whether the peer is a global peer
-                               or node-specific.
-  -c --config=<CONFIG>         Filename containing connection configuration in YAML or JSON format.
-                               [default: /etc/calico/calicoctl.cfg]
-`
-	parsedArgs, err := docopt.Parse(doc, args, true, "calicoctl", false, false)
+  -h --help                 Show this screen.
+  -s --skip-not-exists      Skip over and treat as successful, resources that don't exist.
+  -f --filename=<FILENAME>  Filename to use to delete the resource.  If set to "-" loads from stdin.
+  -n --node=<NODE>          The node (this may be the hostname of the compute server if your
+                            installation does not explicitly set the names of each Calico node).
+     --orchestrator=<ORCH>  The orchestrator (only used for workload endpoints).
+     --workload=<WORKLOAD>  The workload (only used for workload endpoints).
+  --scope=<SCOPE>           The scope of the resource type.  One of global, node.  This is only valid
+                            for BGP peers and is used to indicate whether the peer is a global peer
+                            or node-specific.
+  -c --config=<CONFIG>      Filename containing connection configuration in YAML or JSON format.
+                            [default: /etc/calico/calicoctl.cfg]
+
+Description:
+  The delete command is used to delete a set of resources by filename or stdin, or
+  by type and identifiers.  JSON and YAML formats are accepted for file and stdin format.
+
+  Valid resource types are node, bgpPeer, hostEndpoint, workloadEndpoint, policy, pool and
+  profile.  The <TYPE> is case insensitive and may be pluralized.
+
+  Attempting to delete a resource that does not exists is treated as a terminating error unless the
+  --skip-not-exists flag is set.  If this flag is set, resources that do not exist are skipped.
+
+  When deleting resources by type, only a single type may be specified at a time.  The name
+  is required along with any and other identifiers required to uniquely identify a resource of the
+  specified type.
+
+  The output of the command indicates how many resources were successfully deleted, and the error
+  reason if an error occurred.  If the --skip-not-exists flag is set then skipped resources are
+  included in the success count.
+
+  The resources are deleted in the order they are specified.  In the event of a failure
+  deleting a specific resource it is possible to work out which resource failed based on the
+  number of resources successfully deleted.`
+	parsedArgs, err := docopt.Parse(doc, args, true, "", false, false)
 	if err != nil {
 		return err
 	}
@@ -66,7 +84,7 @@ Options:
 	}
 
 	results := executeConfigCommand(parsedArgs, actionDelete)
-	glog.V(2).Infof("results: %+v", results)
+	log.Infof("results: %+v", results)
 
 	if results.fileInvalid {
 		fmt.Printf("Error processing input file: %v\n", results.err)

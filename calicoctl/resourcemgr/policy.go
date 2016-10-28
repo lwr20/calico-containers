@@ -15,20 +15,19 @@
 package resourcemgr
 
 import (
-	"github.com/tigera/libcalico-go/lib/api"
-	"github.com/tigera/libcalico-go/lib/api/unversioned"
-	"github.com/tigera/libcalico-go/lib/client"
+	"github.com/projectcalico/libcalico-go/lib/api"
+	"github.com/projectcalico/libcalico-go/lib/api/unversioned"
+	"github.com/projectcalico/libcalico-go/lib/client"
 )
 
 func init() {
 	registerResource(
 		api.NewPolicy(),
 		api.NewPolicyList(),
-		[]string{"NAME", "TIER"},
-		[]string{"NAME", "TIER", "ORDER", "SELECTOR"},
+		[]string{"NAME"},
+		[]string{"NAME", "ORDER", "SELECTOR"},
 		map[string]string{
 			"NAME":     "{{.Metadata.Name}}",
-			"TIER":     "{{.Metadata.Tier}}",
 			"ORDER":    "{{.Spec.Order}}",
 			"SELECTOR": "{{.Spec.Selector}}",
 		},
