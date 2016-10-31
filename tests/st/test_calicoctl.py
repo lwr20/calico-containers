@@ -166,7 +166,7 @@ class TestCreateFromFile(TestBase):
                                           'destination': {},
                                           }],
                               'ingress': [{'!icmp': {'type': 19, 'code': 255},
-                                           'ip_version': 4,
+                                           'ipVersion': 4,
                                            'action': 'deny',
                                            'destination': {
                                                '!net': '10.3.0.0/16',
@@ -226,7 +226,7 @@ class TestCreateFromFile(TestBase):
                                       'source': {
                                           'selector': "type=='application'"}}],
                           'ingress': [{'!icmp': {'type': 19, 'code': 255},
-                                       'ip_version': 4,
+                                       'ipVersion': 4,
                                        'action': 'deny',
                                        'destination': {
                                            '!net': '10.3.0.0/16',
@@ -256,7 +256,7 @@ class TestCreateFromFile(TestBase):
                           'egress': [{'action': 'allow',
                                       'destination': {},
                                       'source': {}}],
-                          'ingress': [{'ip_version': 6,
+                          'ingress': [{'ipVersion': 6,
                                        'action': 'deny',
                                        'destination': {},
                                        'source': {}}],
@@ -422,7 +422,7 @@ class TestCreateFromFile(TestBase):
                                'destination': {},
                                }],
                    'ingress': [{'!icmp': {'type': 19, 'code': 255},
-                                'ip_version': 4,
+                                'ipVersion': 4,
                                 'action': 'deny',
                                 'destination': {
                                     '!net': '10.3.0.0/16',
@@ -483,7 +483,7 @@ class TestCreateFromFile(TestBase):
                           'source': {
                               'selector': "type=='application'"}}],
               'ingress': [{'!icmp': {'type': 19, 'code': 255},
-                           'ip_version': 4,
+                           'ipVersion': 4,
                            'action': 'deny',
                            'destination': {
                                '!net': '10.3.0.0/16',
@@ -512,7 +512,7 @@ class TestCreateFromFile(TestBase):
               'egress': [{'action': 'allow',
                           'destination': {},
                           'source': {}}],
-              'ingress': [{'ip_version': 6,
+              'ingress': [{'ipVersion': 6,
                            'action': 'deny',
                            'destination': {},
                            'source': {}}],
@@ -984,7 +984,7 @@ class InvalidData(TestBase):
                                              'egress': [{'action': 'allow',
                                                          'destination': {},
                                                          'source': {}}],
-                                             'ingress': [{'ip_version': 6,
+                                             'ingress': [{'ipVersion': 6,
                                                           'icmp': {'type': 256,
                                                                    # 1-byte field
                                                                    'code': 255},
@@ -999,7 +999,7 @@ class InvalidData(TestBase):
                                              'egress': [{'action': 'allow',
                                                          'destination': {},
                                                          'source': {}}],
-                                             'ingress': [{'ip_version': 6,
+                                             'ingress': [{'ipVersion': 6,
                                                           'icmp': {'type': 19,
                                                                    'code': 256},
                                                           # 1-byte field
@@ -1021,7 +1021,7 @@ class InvalidData(TestBase):
                             'egress': [{'action': 'allow',
                                         'destination': {},
                                         'source': {}}],
-                            'ingress': [{'ip_version': 6,
+                            'ingress': [{'ipVersion': 6,
                                          'icmp': {'type': 256,  # 1-byte field
                                                   'code': 255},
                                          'action': 'deny',
