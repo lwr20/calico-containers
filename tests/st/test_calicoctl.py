@@ -123,7 +123,7 @@ class TestCreateFromFile(TestBase):
         ("bgpPeer1", {
             'apiVersion': 'v1',
             'kind': 'bgpPeer',
-            'metadata': {'hostname': 'Node1',
+            'metadata': {'node': 'Node1',
                          'peerIP': '192.168.0.250',
                          'scope': 'node'},
             'spec': {'asNumber': 64514}
@@ -131,7 +131,7 @@ class TestCreateFromFile(TestBase):
         ("bgpPeer2", {
             'apiVersion': 'v1',
             'kind': 'bgpPeer',
-            'metadata': {'hostname': 'Node2',
+            'metadata': {'node': 'Node2',
                          'peerIP': 'fd5f::6:ee',
                          'scope': 'node'},
             'spec': {'asNumber': 64590}
@@ -139,7 +139,7 @@ class TestCreateFromFile(TestBase):
         ("hostEndpoint1", {
             'apiVersion': 'v1',
             'kind': 'hostEndpoint',
-            'metadata': {'hostname': 'host1',
+            'metadata': {'node': 'host1',
                          'labels': {'type': 'database'},
                          'name': 'endpoint1'},
             'spec': {'interfaceName': 'eth0',
@@ -149,7 +149,7 @@ class TestCreateFromFile(TestBase):
         ("hostEndpoint2", {
             'apiVersion': 'v1',
             'kind': 'hostEndpoint',
-            'metadata': {'hostname': 'host2',
+            'metadata': {'node': 'host2',
                          'labels': {'type': 'frontend'},
                          'name': 'endpoint2'},
             'spec': {'interfaceName': 'cali7',
@@ -166,7 +166,7 @@ class TestCreateFromFile(TestBase):
                                           'destination': {},
                                           }],
                               'ingress': [{'!icmp': {'type': 19, 'code': 255},
-                                           'ipVersion': 4,
+                                           'ip_version': 4,
                                            'action': 'deny',
                                            'destination': {
                                                '!net': '10.3.0.0/16',
@@ -226,7 +226,7 @@ class TestCreateFromFile(TestBase):
                                       'source': {
                                           'selector': "type=='application'"}}],
                           'ingress': [{'!icmp': {'type': 19, 'code': 255},
-                                       'ipVersion': 4,
+                                       'ip_version': 4,
                                        'action': 'deny',
                                        'destination': {
                                            '!net': '10.3.0.0/16',
@@ -256,7 +256,7 @@ class TestCreateFromFile(TestBase):
                           'egress': [{'action': 'allow',
                                       'destination': {},
                                       'source': {}}],
-                          'ingress': [{'ipVersion': 6,
+                          'ingress': [{'ip_version': 6,
                                        'action': 'deny',
                                        'destination': {},
                                        'source': {}}],
@@ -376,7 +376,7 @@ class TestCreateFromFile(TestBase):
          {
              'apiVersion': 'v1',
              'kind': 'bgpPeer',
-             'metadata': {'hostname': 'Node1',
+             'metadata': {'node': 'Node1',
                           'peerIP': '192.168.0.250',
                           'scope': 'node'},
              'spec': {'asNumber': 64514}
@@ -384,7 +384,7 @@ class TestCreateFromFile(TestBase):
          {
              'apiVersion': 'v1',
              'kind': 'bgpPeer',
-             'metadata': {'hostname': 'Node2',
+             'metadata': {'node': 'Node2',
                           'peerIP': 'fd5f::6:ee',
                           'scope': 'node'},
              'spec': {'asNumber': 64590}
@@ -394,7 +394,7 @@ class TestCreateFromFile(TestBase):
          {
              'apiVersion': 'v1',
              'kind': 'hostEndpoint',
-             'metadata': {'hostname': 'host1',
+             'metadata': {'node': 'host1',
                           'labels': {'type': 'database'},
                           'name': 'endpoint1'},
              'spec': {'interfaceName': 'eth0',
@@ -404,7 +404,7 @@ class TestCreateFromFile(TestBase):
          {
              'apiVersion': 'v1',
              'kind': 'hostEndpoint',
-             'metadata': {'hostname': 'host2',
+             'metadata': {'node': 'host2',
                           'labels': {'type': 'frontend'},
                           'name': 'endpoint2'},
              'spec': {'interfaceName': 'cali7',
@@ -422,7 +422,7 @@ class TestCreateFromFile(TestBase):
                                'destination': {},
                                }],
                    'ingress': [{'!icmp': {'type': 19, 'code': 255},
-                                'ipVersion': 4,
+                                'ip_version': 4,
                                 'action': 'deny',
                                 'destination': {
                                     '!net': '10.3.0.0/16',
@@ -483,7 +483,7 @@ class TestCreateFromFile(TestBase):
                           'source': {
                               'selector': "type=='application'"}}],
               'ingress': [{'!icmp': {'type': 19, 'code': 255},
-                           'ipVersion': 4,
+                           'ip_version': 4,
                            'action': 'deny',
                            'destination': {
                                '!net': '10.3.0.0/16',
@@ -512,7 +512,7 @@ class TestCreateFromFile(TestBase):
               'egress': [{'action': 'allow',
                           'destination': {},
                           'source': {}}],
-              'ingress': [{'ipVersion': 6,
+              'ingress': [{'ip_version': 6,
                            'action': 'deny',
                            'destination': {},
                            'source': {}}],
@@ -553,7 +553,7 @@ class TestCreateFromFile(TestBase):
          {
              'apiVersion': 'v1',
              'kind': 'bgpPeer',
-             'metadata': {'hostname': 'Node1',
+             'metadata': {'node': 'Node1',
                           'peerIP': '192.168.0.250',
                           'scope': 'node'},
              'spec': {'asNumber': 64514}
@@ -561,7 +561,7 @@ class TestCreateFromFile(TestBase):
          {
              'apiVersion': 'v1',
              'kind': 'bgpPeer',
-             'metadata': {'hostname': 'Node1',
+             'metadata': {'node': 'Node1',
                           'peerIP': '192.168.0.250',
                           'scope': 'node'},
              'spec': {'asNumber': 64590}
@@ -571,7 +571,7 @@ class TestCreateFromFile(TestBase):
          {
              'apiVersion': 'v1',
              'kind': 'hostEndpoint',
-             'metadata': {'hostname': 'host1',
+             'metadata': {'node': 'host1',
                           'labels': {'type': 'database'},
                           'name': 'endpoint1'},
              'spec': {'interfaceName': 'eth0',
@@ -581,7 +581,7 @@ class TestCreateFromFile(TestBase):
          {
              'apiVersion': 'v1',
              'kind': 'hostEndpoint',
-             'metadata': {'hostname': 'host1',
+             'metadata': {'node': 'host1',
                           'labels': {'type': 'frontend'},
                           'name': 'endpoint1'},
              'spec': {'interfaceName': 'cali7',
@@ -745,7 +745,7 @@ class InvalidData(TestBase):
                    ("bgpPeer-invalidkind", {
                        'apiVersion': 'v1',
                        'kind': 'bgppeer',
-                       'metadata': {'hostname': 'Node1',
+                       'metadata': {'node': 'Node1',
                                     'peerIP': '192.168.0.250',
                                     'scope': 'node'},
                        'spec': {'asNumber': 64511}
@@ -753,7 +753,7 @@ class InvalidData(TestBase):
                    ("bgpPeer-invalidASnum", {
                        'apiVersion': 'v1',
                        'kind': 'bgpPeer',
-                       'metadata': {'hostname': 'Node1',
+                       'metadata': {'node': 'Node1',
                                     'peerIP': '192.168.0.250',
                                     'scope': 'node'},
                        'spec': {'asNumber': 4294967296}
@@ -762,7 +762,7 @@ class InvalidData(TestBase):
                    ("bgpPeer-invalidIP", {
                        'apiVersion': 'v1',
                        'kind': 'bgpPeer',
-                       'metadata': {'hostname': 'Node1',
+                       'metadata': {'node': 'Node1',
                                     'peerIP': '192.168.0.256',
                                     'scope': 'node'},
                        'spec': {'asNumber': 64511}
@@ -770,7 +770,7 @@ class InvalidData(TestBase):
                    ("bgpPeer-apiversion", {
                        'apiVersion': 'v7',
                        'kind': 'bgpPeer',
-                       'metadata': {'hostname': 'Node1',
+                       'metadata': {'node': 'Node1',
                                     'peerIP': '192.168.0.250',
                                     'scope': 'node'},
                        'spec': {'asNumber': 64511}
@@ -778,7 +778,7 @@ class InvalidData(TestBase):
                    ("bgpPeer-invalidIpv6", {
                        'apiVersion': 'v1',
                        'kind': 'bgpPeer',
-                       'metadata': {'hostname': 'Node2',
+                       'metadata': {'node': 'Node2',
                                     'peerIP': 'fd5f::6::ee',
                                     'scope': 'node'},
                        'spec': {'asNumber': 64590}
@@ -786,7 +786,7 @@ class InvalidData(TestBase):
                    ("bgpPeer-invalidname", {
                        'apiVersion': 'v1',
                        'kind': 'bgpPeer',
-                       'metadata': {'hostname': 'Node 2',
+                       'metadata': {'node': 'Node 2',
                                     'peerIP': 'fd5f::6:ee',
                                     'scope': 'node'},
                        'spec': {'asNumber': 64590}
@@ -795,7 +795,7 @@ class InvalidData(TestBase):
                    # ("bgpPeer-longname", {
                    #     'apiVersion': 'v1',
                    #     'kind': 'bgpPeer',
-                   #     'metadata': {'hostname':
+                   #     'metadata': {'node':
                    #                      'TestTestTestTestTestTestTestTestTestTestTest'
                    #                      'TestTestTestTestTestTestTestTestTestTestTest'
                    #                      'TestTestTestTestTestTestTestTestTestTestTest'
@@ -814,7 +814,7 @@ class InvalidData(TestBase):
                    ("hostEndpoint-invalidInterface", {
                        'apiVersion': 'v1',
                        'kind': 'hostEndpoint',
-                       'metadata': {'hostname': 'host1',
+                       'metadata': {'node': 'host1',
                                     'labels': {'type': 'database'},
                                     'name': 'endpoint1'},
                        'spec': {'interfaceName': 'wibblywobblyeth0',
@@ -984,7 +984,7 @@ class InvalidData(TestBase):
                                              'egress': [{'action': 'allow',
                                                          'destination': {},
                                                          'source': {}}],
-                                             'ingress': [{'ipVersion': 6,
+                                             'ingress': [{'ip_version': 6,
                                                           'icmp': {'type': 256,
                                                                    # 1-byte field
                                                                    'code': 255},
@@ -999,7 +999,7 @@ class InvalidData(TestBase):
                                              'egress': [{'action': 'allow',
                                                          'destination': {},
                                                          'source': {}}],
-                                             'ingress': [{'ipVersion': 6,
+                                             'ingress': [{'ip_version': 6,
                                                           'icmp': {'type': 19,
                                                                    'code': 256},
                                                           # 1-byte field
@@ -1010,7 +1010,7 @@ class InvalidData(TestBase):
                    ("compound-config", [{
                        'apiVersion': 'v1',
                        'kind': 'bgpPeer',
-                       'metadata': {'hostname': 'Node1',
+                       'metadata': {'node': 'Node1',
                                     'peerIP': '192.168.0.250',
                                     'scope': 'node'},
                        'spec': {'asNumber': 64511}},
@@ -1021,7 +1021,7 @@ class InvalidData(TestBase):
                             'egress': [{'action': 'allow',
                                         'destination': {},
                                         'source': {}}],
-                            'ingress': [{'ipVersion': 6,
+                            'ingress': [{'ip_version': 6,
                                          'icmp': {'type': 256,  # 1-byte field
                                                   'code': 255},
                                          'action': 'deny',
